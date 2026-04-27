@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { ExpenseType, Expense, Location, FuelType, MaintenanceItem, PaymentMethod, Vehicle } from '../types';
-import { Plus, X, Trash2, CreditCard, Wallet, Zap, FileText, Save, Car } from 'lucide-react';
+import { Plus, X, Trash2, CreditCard, Wallet, Zap, FileText, Save, Car, ChevronDown } from 'lucide-react';
 
 interface ExpenseFormProps {
   onAdd: (expense: Omit<Expense, 'id'> | Expense) => void;
@@ -194,15 +194,15 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
               <select 
                 value={locationId} 
                 onChange={e => setLocationId(e.target.value)} 
-                className="w-full p-4 bg-white border-2 border-slate-300 rounded-2xl text-sm font-black text-black focus:border-blue-600 outline-none transition-all appearance-none"
+                className="w-full p-4 bg-white border-2 border-slate-300 rounded-2xl text-sm font-black text-black focus:border-blue-600 outline-none transition-all appearance-none pr-12"
               >
                 <option value="">Selecione...</option>
                 {locations.filter(l => (type === 'FUEL' && l.type === 'POSTO') || (type === 'MAINTENANCE' && l.type === 'OFICINA') || (type === 'SERVICE_REVENUE' && l.type === 'CLIENTE')).map(loc => (
                   <option key={loc.id} value={loc.id} className="font-bold text-black">{loc.name}</option>
                 ))}
               </select>
-              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-black">
-                <Plus size={20} />
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                <ChevronDown size={20} />
               </div>
             </div>
           </div>
