@@ -11,6 +11,7 @@ interface ExpenseFormProps {
   vehicles: Vehicle[];
   activeVehicleId: string | null;
   initialData?: Expense | null;
+  lastFuelPrice?: number;
 }
 
 export const ExpenseForm: React.FC<ExpenseFormProps> = ({ 
@@ -20,7 +21,8 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
   locations, 
   vehicles,
   activeVehicleId,
-  initialData 
+  initialData,
+  lastFuelPrice
 }) => {
   const [type, setType] = useState<ExpenseType>(initialData?.type || ExpenseType.FUEL);
   const [date, setDate] = useState(initialData?.date || new Date().toISOString().split('T')[0]);
@@ -37,7 +39,7 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
     initialData?.maintenanceItems || [{ id: crypto.randomUUID(), description: '', value: 0 }]
   );
   const [odometerStart, setOdometerStart] = useState<string>(initialData?.odometerStart?.toString() || lastOdometer.toString());
-  const [ratePerKm, setRatePerKm] = useState<string>(initialData?.ratePerKm?.toString() || '0.00');
+  const [ratePerKm, setRatePerKm] = useState<string>(initialData?.ratePerKm?.toString() || (lastFuelPrice ? lastFuelPrice.toFixed(2) : '0.00'));
 
   const totalValue = useMemo(() => {
     if (type === ExpenseType.FUEL) return parseFloat(fuelValue) || 0;

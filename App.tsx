@@ -134,6 +134,14 @@ const App: React.FC = () => {
     return activeVehicle?.initialOdometer || 0;
   }, [filteredExpensesByVehicle, activeVehicle]);
 
+  const lastFuelPrice = useMemo(() => {
+    const fuels = filteredExpensesByVehicle.filter(e => e.type === ExpenseType.FUEL).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    if (fuels.length > 0 && fuels[0].liters && fuels[0].liters > 0) {
+      return fuels[0].value / fuels[0].liters;
+    }
+    return 0;
+  }, [filteredExpensesByVehicle]);
+
   const handleLogin = async (user: User) => {
     setUsers(prev => {
       if (!prev.find(u => u.username.toLowerCase() === user.username.toLowerCase())) {
@@ -548,6 +556,7 @@ const App: React.FC = () => {
           onAdd={handleSaveExpense} 
           onClose={() => { setIsFormOpen(false); setEditingExpense(null); }}
           initialData={editingExpense}
+          lastFuelPrice={lastFuelPrice}
         />
       )}
     </div>
