@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
-import { User, UserRole } from '../types';
-import { Car, Lock, User as UserIcon, ArrowRight, ShieldAlert } from 'lucide-react';
+import { User } from '../types';
+import { Car, Lock, User as UserIcon, ArrowRight, ShieldAlert, AlertCircle } from 'lucide-react';
 
 interface LoginProps {
   onLogin: (user: User) => void;
@@ -11,25 +11,34 @@ interface LoginProps {
 export const Login: React.FC<LoginProps> = ({ onLogin, availableUsers }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!username.trim()) return;
+    setError('');
 
-    // Tenta encontrar um usuário pré-existente
-    const existingUser = availableUsers.find(u => u.username.toLowerCase() === username.toLowerCase());
-    
-    if (existingUser) {
-      onLogin(existingUser);
-    } else {
-      const newUser: User = {
-        id: crypto.randomUUID(),
-        name: username.split('.')[0].charAt(0).toUpperCase() + username.split('.')[0].slice(1),
-        username: username.toLowerCase(),
-        role: UserRole.ADMIN,
-      };
-      onLogin(newUser);
+    if (!username.trim() || !password.trim()) {
+      setError('Preencha usuário e senha.');
+      return;
     }
+
+    // Busca o usuário pelo username
+    const foundUser = availableUsers.find(
+      u => u.username.toLowerCase() === username.trim().toLowerCase()
+    );
+
+    if (!foundUser) {
+      setError('Usuário não encontrado.');
+      return;
+    }
+
+    // Valida a senha
+    if (foundUser.password && foundUser.password !== password) {
+      setError('Senha incorreta.');
+      return;
+    }
+
+    onLogin(foundUser);
   };
 
   return (
@@ -52,7 +61,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin, availableUsers }) => {
                 <input
                   type="text"
                   value={username}
-                  onChange={e => setUsername(e.target.value)}
+                  onChange={e => { setUsername(e.target.value); setError(''); }}
                   placeholder="Seu usuário"
                   className="w-full p-4 pl-12 bg-slate-50 border-2 border-slate-200 rounded-2xl focus:border-blue-600 outline-none transition-all font-bold text-black"
                   required
@@ -67,7 +76,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin, availableUsers }) => {
                 <input
                   type="password"
                   value={password}
-                  onChange={e => setPassword(e.target.value)}
+                  onChange={e => { setPassword(e.target.value); setError(''); }}
                   placeholder="Sua senha"
                   className="w-full p-4 pl-12 bg-slate-50 border-2 border-slate-200 rounded-2xl focus:border-blue-600 outline-none transition-all font-bold text-black"
                   required
@@ -75,12 +84,21 @@ export const Login: React.FC<LoginProps> = ({ onLogin, availableUsers }) => {
               </div>
             </div>
 
-            <div className="bg-blue-50/50 p-4 rounded-2xl border border-blue-100 flex items-start gap-3">
-              <div className="mt-0.5 text-blue-600"><ShieldAlert size={16} /></div>
-              <p className="text-[10px] font-black text-blue-800 uppercase leading-relaxed">
-                Ambiente seguro ativado. <br/> Use credenciais válidas para continuar.
-              </p>
-            </div>
+            {error && (
+              <div className="bg-red-50 p-4 rounded-2xl border border-red-200 flex items-center gap-3">
+                <AlertCircle size={16} className="text-red-500 shrink-0" />
+                <p className="text-[11px] font-bold text-red-700">{error}</p>
+              </div>
+            )}
+
+            {!error && (
+              <div className="bg-blue-50/50 p-4 rounded-2xl border border-blue-100 flex items-start gap-3">
+                <div className="mt-0.5 text-blue-600"><ShieldAlert size={16} /></div>
+                <p className="text-[10px] font-black text-blue-800 uppercase leading-relaxed">
+                  Ambiente seguro ativado. <br/> Use credenciais válidas para continuar.
+                </p>
+              </div>
+            )}
 
             <button
               type="submit"
@@ -89,21 +107,6 @@ export const Login: React.FC<LoginProps> = ({ onLogin, availableUsers }) => {
               Acessar Painel <ArrowRight size={18} />
             </button>
           </form>
-        </div>
-        
-        <div className="mt-8 grid grid-cols-3 gap-2 px-4 opacity-50">
-          <div className="text-center">
-            <p className="text-[8px] font-black text-slate-400 uppercase">Admin</p>
-            <p className="text-[9px] font-bold text-slate-600">admin</p>
-          </div>
-          <div className="text-center">
-            <p className="text-[8px] font-black text-slate-400 uppercase">Padrão</p>
-            <p className="text-[9px] font-bold text-slate-600">padrao</p>
-          </div>
-          <div className="text-center">
-            <p className="text-[8px] font-black text-slate-400 uppercase">Simples</p>
-            <p className="text-[9px] font-bold text-slate-600">simples</p>
-          </div>
         </div>
       </div>
     </div>
