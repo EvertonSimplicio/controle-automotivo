@@ -6,6 +6,7 @@ import { Plus, Trash2, Fuel, Wrench, Building2, Users, ShieldCheck, UserCheck, U
 interface SettingsProps {
   locations: Location[];
   onAddLocation: (location: Omit<Location, 'id'>) => void;
+  onUpdateLocation: (location: Location) => void;
   onRemoveLocation: (id: string) => void;
   users: User[];
   onAddUser: (user: Omit<User, 'id'>) => void;
@@ -20,7 +21,7 @@ interface SettingsProps {
 }
 
 export const Settings: React.FC<SettingsProps> = ({ 
-  locations, onAddLocation, onRemoveLocation, 
+  locations, onAddLocation, onUpdateLocation, onRemoveLocation, 
   users, onAddUser, onUpdateUser, onRemoveUser, 
   currentUserRole,
   vehicles, onAddVehicle, onRemoveVehicle,
@@ -44,13 +45,33 @@ export const Settings: React.FC<SettingsProps> = ({
 
   const [isAdding, setIsAdding] = useState(false);
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
+  const [editingLocationId, setEditingLocationId] = useState<string | null>(null);
+
+  const handleEditLocation = (loc: Location) => {
+    setEditingLocationId(loc.id);
+    setName(loc.name);
+    setLocType(loc.type);
+    setIsAdding(true);
+  };
+
+  const cancelLocationEdit = () => {
+    setEditingLocationId(null);
+    setName('');
+    setLocType('POSTO');
+    setIsAdding(false);
+  };
 
   const handleSubmitLocation = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
-    onAddLocation({ name, type: locType });
-    setName('');
-    setIsAdding(false);
+    
+    if (editingLocationId) {
+      onUpdateLocation({ id: editingLocationId, name, type: locType });
+    } else {
+      onAddLocation({ name, type: locType });
+    }
+    
+    cancelLocationEdit();
   };
 
   const handleSubmitVehicle = (e: React.FormEvent) => {
@@ -132,7 +153,7 @@ export const Settings: React.FC<SettingsProps> = ({
     <div className="space-y-6 pb-12">
       <div className="flex bg-white p-1.5 rounded-2xl border border-slate-200 mb-6 overflow-x-auto scrollbar-hide">
         <button 
-          onClick={() => { setActiveSubTab('VEHICLES'); cancelUserEdit(); setIsAdding(false); }}
+          onClick={() => { setActiveSubTab('VEHICLES'); cancelUserEdit(); cancelLocationEdit(); setIsAdding(false); }}
           className={`flex-1 py-3 px-4 rounded-xl text-[10px] font-black uppercase tracking-tight transition-all flex items-center justify-center gap-2 whitespace-nowrap ${
             activeSubTab === 'VEHICLES' ? 'bg-black text-white shadow-md' : 'text-slate-500 hover:text-black'
           }`}
@@ -140,7 +161,7 @@ export const Settings: React.FC<SettingsProps> = ({
           <Car size={16} /> Veículos
         </button>
         <button 
-          onClick={() => { setActiveSubTab('LOCATIONS'); cancelUserEdit(); setIsAdding(false); }}
+          onClick={() => { setActiveSubTab('LOCATIONS'); cancelUserEdit(); cancelLocationEdit(); setIsAdding(false); }}
           className={`flex-1 py-3 px-4 rounded-xl text-[10px] font-black uppercase tracking-tight transition-all flex items-center justify-center gap-2 whitespace-nowrap ${
             activeSubTab === 'LOCATIONS' ? 'bg-black text-white shadow-md' : 'text-slate-500 hover:text-black'
           }`}
@@ -149,7 +170,7 @@ export const Settings: React.FC<SettingsProps> = ({
         </button>
         {currentUserRole === UserRole.ADMIN && (
           <button 
-            onClick={() => { setActiveSubTab('USERS'); cancelUserEdit(); setIsAdding(false); }}
+            onClick={() => { setActiveSubTab('USERS'); cancelUserEdit(); cancelLocationEdit(); setIsAdding(false); }}
             className={`flex-1 py-3 px-4 rounded-xl text-[10px] font-black uppercase tracking-tight transition-all flex items-center justify-center gap-2 whitespace-nowrap ${
               activeSubTab === 'USERS' ? 'bg-black text-white shadow-md' : 'text-slate-500 hover:text-black'
             }`}
@@ -255,18 +276,24 @@ export const Settings: React.FC<SettingsProps> = ({
               <h2 className="text-xl font-black text-black tracking-tight uppercase">Locais e Empresas</h2>
               <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Pontos de Interesse</p>
             </div>
-            <button 
-              onClick={() => setIsAdding(!isAdding)}
-              className={`p-3 rounded-2xl transition-all shadow-md active:scale-95 ${
-                isAdding ? 'bg-red-50 text-red-600' : 'bg-black text-white'
-              }`}
-            >
-              {isAdding ? <Plus className="rotate-45" size={20} /> : <Plus size={20} />}
-            </button>
+            {!editingLocationId && (
+              <button 
+                onClick={() => setIsAdding(!isAdding)}
+                className={`p-3 rounded-2xl transition-all shadow-md active:scale-95 ${
+                  isAdding ? 'bg-red-50 text-red-600' : 'bg-black text-white'
+                }`}
+              >
+                {isAdding ? <Plus className="rotate-45" size={20} /> : <Plus size={20} />}
+              </button>
+            )}
           </div>
 
           {isAdding && (
             <form onSubmit={handleSubmitLocation} className="space-y-4 animate-in fade-in zoom-in duration-200 mb-6 bg-slate-50 p-5 rounded-2xl border border-slate-200">
+              <div className="flex justify-between items-center mb-2">
+                <h4 className="text-[10px] font-black uppercase text-slate-400">{editingLocationId ? 'Editando Local' : 'Novo Local'}</h4>
+                {editingLocationId && <button type="button" onClick={cancelLocationEdit} className="text-red-500 hover:text-red-700"><X size={18} /></button>}
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-black text-black uppercase ml-1">Nome</label>
@@ -291,7 +318,9 @@ export const Settings: React.FC<SettingsProps> = ({
                   </select>
                 </div>
               </div>
-              <button type="submit" className="w-full bg-black text-white py-4 rounded-xl font-black uppercase text-[11px] tracking-widest shadow-xl">Salvar Local</button>
+              <button type="submit" className={`w-full text-white py-4 rounded-xl font-black uppercase text-[11px] tracking-widest shadow-xl flex items-center justify-center gap-2 ${editingLocationId ? 'bg-amber-600' : 'bg-black'}`}>
+                {editingLocationId ? <><Save size={16} /> Atualizar Local</> : 'Salvar Local'}
+              </button>
             </form>
           )}
 
@@ -300,7 +329,10 @@ export const Settings: React.FC<SettingsProps> = ({
             {groupedLocations.POSTO.map(l => (
               <div key={l.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
                 <span className="text-sm font-bold text-black">{l.name}</span>
-                <button onClick={() => onRemoveLocation(l.id)} className="text-slate-300 hover:text-red-500"><Trash2 size={16} /></button>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => handleEditLocation(l)} className="text-slate-400 hover:text-amber-600 transition-colors p-2 bg-white rounded-xl shadow-sm"><Pencil size={16} /></button>
+                  <button onClick={() => onRemoveLocation(l.id)} className="text-slate-300 hover:text-red-500 transition-colors p-2 bg-white rounded-xl shadow-sm"><Trash2 size={16} /></button>
+                </div>
               </div>
             ))}
 
@@ -308,7 +340,10 @@ export const Settings: React.FC<SettingsProps> = ({
             {groupedLocations.OFICINA.map(l => (
               <div key={l.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
                 <span className="text-sm font-bold text-black">{l.name}</span>
-                <button onClick={() => onRemoveLocation(l.id)} className="text-slate-300 hover:text-red-500"><Trash2 size={16} /></button>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => handleEditLocation(l)} className="text-slate-400 hover:text-amber-600 transition-colors p-2 bg-white rounded-xl shadow-sm"><Pencil size={16} /></button>
+                  <button onClick={() => onRemoveLocation(l.id)} className="text-slate-300 hover:text-red-500 transition-colors p-2 bg-white rounded-xl shadow-sm"><Trash2 size={16} /></button>
+                </div>
               </div>
             ))}
 
@@ -316,7 +351,10 @@ export const Settings: React.FC<SettingsProps> = ({
             {groupedLocations.CLIENTE.map(l => (
               <div key={l.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
                 <span className="text-sm font-bold text-black">{l.name}</span>
-                <button onClick={() => onRemoveLocation(l.id)} className="text-slate-300 hover:text-red-500"><Trash2 size={16} /></button>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => handleEditLocation(l)} className="text-slate-400 hover:text-amber-600 transition-colors p-2 bg-white rounded-xl shadow-sm"><Pencil size={16} /></button>
+                  <button onClick={() => onRemoveLocation(l.id)} className="text-slate-300 hover:text-red-500 transition-colors p-2 bg-white rounded-xl shadow-sm"><Trash2 size={16} /></button>
+                </div>
               </div>
             ))}
           </div>

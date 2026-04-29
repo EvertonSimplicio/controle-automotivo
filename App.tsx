@@ -266,6 +266,17 @@ const App: React.FC = () => {
     }
   };
 
+  const handleUpdateLocation = async (updatedLocation: Location) => {
+    try {
+      if (supabase) {
+        await supabaseService.saveLocation(updatedLocation);
+      }
+      setLocations(locations.map(l => l.id === updatedLocation.id ? updatedLocation : l));
+    } catch (e) {
+      console.error("Erro ao atualizar localização:", e);
+    }
+  };
+
   const handleAddUser = async (user: Omit<User, 'id'>) => {
     try {
       if (supabase) {
@@ -466,7 +477,7 @@ const App: React.FC = () => {
           {activeTab === 'settings' && isAdmin && (
             <div className="animate-in slide-in-from-left-4 duration-300 w-full overflow-x-hidden">
               <Settings 
-                locations={locations} onAddLocation={handleAddLocation} onRemoveLocation={handleRemoveLocation} 
+                locations={locations} onAddLocation={handleAddLocation} onUpdateLocation={handleUpdateLocation} onRemoveLocation={handleRemoveLocation} 
                 users={users} onAddUser={handleAddUser} onUpdateUser={handleUpdateUser} onRemoveUser={handleRemoveUser}
                 currentUserRole={currentUser.role}
                 vehicles={vehicles} onAddVehicle={handleAddVehicle} onRemoveVehicle={handleRemoveVehicle}
