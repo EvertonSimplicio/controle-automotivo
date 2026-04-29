@@ -17,7 +17,11 @@ const App: React.FC = () => {
     try {
       const saved = localStorage.getItem('driveFlow_loggedUser');
       if (!saved || saved === 'null') return null;
-      return JSON.parse(saved);
+      const user = JSON.parse(saved);
+      if (user && user.id && user.id.length < 36) {
+        user.id = crypto.randomUUID();
+      }
+      return user;
     } catch (e) {
       console.error("Erro ao carregar usuário logado:", e);
       return null;
@@ -26,16 +30,26 @@ const App: React.FC = () => {
 
   const [users, setUsers] = useState<User[]>(() => {
     const saved = localStorage.getItem('driveFlow_users');
-    return saved ? JSON.parse(saved) : [
-      { id: '1', name: 'Administrador', username: 'admin', role: UserRole.ADMIN, password: '123' },
-      { id: '2', name: 'Usuário Padrão', username: 'padrao', role: UserRole.STANDARD, password: '123' },
-      { id: '3', name: 'Usuário Simples', username: 'simples', role: UserRole.SIMPLE, password: '123' }
+    let parsed = saved ? JSON.parse(saved) : null;
+    if (parsed && parsed.length > 0) {
+      parsed = parsed.map((u: User) => ({ ...u, id: u.id.length < 36 ? crypto.randomUUID() : u.id }));
+      return parsed;
+    }
+    return [
+      { id: '11111111-1111-1111-1111-111111111111', name: 'Administrador', username: 'admin', role: UserRole.ADMIN, password: '123' },
+      { id: '22222222-2222-2222-2222-222222222222', name: 'Usuário Padrão', username: 'padrao', role: UserRole.STANDARD, password: '123' },
+      { id: '33333333-3333-3333-3333-333333333333', name: 'Usuário Simples', username: 'simples', role: UserRole.SIMPLE, password: '123' }
     ];
   });
 
   const [vehicles, setVehicles] = useState<Vehicle[]>(() => {
     const saved = localStorage.getItem('driveFlow_vehicles');
-    return saved ? JSON.parse(saved) : [];
+    let parsed = saved ? JSON.parse(saved) : null;
+    if (parsed && parsed.length > 0) {
+      parsed = parsed.map((v: Vehicle) => ({ ...v, id: v.id.length < 36 ? crypto.randomUUID() : v.id }));
+      return parsed;
+    }
+    return [];
   });
 
   const [activeVehicleId, setActiveVehicleId] = useState<string | null>(() => {
@@ -49,9 +63,14 @@ const App: React.FC = () => {
 
   const [locations, setLocations] = useState<Location[]>(() => {
     const saved = localStorage.getItem('driveFlow_locations');
-    return saved ? JSON.parse(saved) : [
-      { id: '1', name: 'Posto Central', type: 'POSTO' },
-      { id: '2', name: 'Oficina do Zé', type: 'OFICINA' }
+    let parsed = saved ? JSON.parse(saved) : null;
+    if (parsed && parsed.length > 0) {
+      parsed = parsed.map((l: Location) => ({ ...l, id: l.id.length < 36 ? crypto.randomUUID() : l.id }));
+      return parsed;
+    }
+    return [
+      { id: '44444444-4444-4444-4444-444444444444', name: 'Posto Central', type: 'POSTO' },
+      { id: '55555555-5555-5555-5555-555555555555', name: 'Oficina do Zé', type: 'OFICINA' }
     ];
   });
 
